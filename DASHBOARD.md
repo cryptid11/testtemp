@@ -1,12 +1,12 @@
 # Silver Price Analysis - Interactive Dashboard
 
-🌐 **Live Dashboard**: [View Online](https://cryptid11.github.io/testtemp/)
+🌐 **Live Dashboard**: [View Online](https://cryptid11.github.io/silver-price-analysis/)
 
 This repository contains a comprehensive silver price movement analysis with an interactive web dashboard featuring distribution charts and statistical sigma analysis.
 
 ## Quick Links
 
-- 📊 [**View Live Dashboard**](https://cryptid11.github.io/testtemp/)
+- 📊 [**View Live Dashboard**](https://cryptid11.github.io/silver-price-analysis/)
 - 📖 [Setup Guide](GITHUB_PAGES_SETUP.md)
 - 📈 [Full Documentation](README.md)
 

@@ -6,7 +6,7 @@ This project retrieves daily silver price data and ranks the biggest movements (
 
 ### 🌐 View Online (Recommended)
 
-**Live URL**: `https://cryptid11.github.io/testtemp/` (after GitHub Pages is enabled)
+**Live URL**: `https://cryptid11.github.io/silver-price-analysis/` (after GitHub Pages is enabled)
 
 👉 **[Setup GitHub Pages in 2 minutes](GITHUB_PAGES_SETUP.md)** - Follow the simple guide to publish your dashboard online!
 
