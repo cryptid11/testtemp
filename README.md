@@ -4,7 +4,17 @@ This project retrieves daily silver price data and ranks the biggest movements (
 
 ## 🎯 Interactive Dashboard
 
-**View the interactive visualization:** Open `index.html` in your browser!
+### 🌐 View Online (Recommended)
+
+**Live URL**: `https://cryptid11.github.io/testtemp/` (after GitHub Pages is enabled)
+
+👉 **[Setup GitHub Pages in 2 minutes](GITHUB_PAGES_SETUP.md)** - Follow the simple guide to publish your dashboard online!
+
+### 💻 View Locally
+
+Alternatively, open `index.html` in your browser to view offline.
+
+### Dashboard Features
 
 The dashboard includes:
 - 📊 **Distribution Chart** - Bell curve showing normal distribution of daily movements
