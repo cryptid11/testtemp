@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silver Price Movement Analysis - Interactive Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-card .subtext {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .positive {
+            color: #10b981 !important;
+        }
+
+        .negative {
+            color: #ef4444 !important;
+        }
+
+        .chart-section {
+            padding: 40px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .chart-container h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .table-container {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .table-wrapper h2 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            font-size: 1.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #667eea;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .sigma-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .sigma-high {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .sigma-extreme {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        footer {
+            background: #1f2937;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .methodology {
+            padding: 40px;
+            background: white;
+        }
+
+        .methodology h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .methodology p {
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .methodology code {
+            background: #f3f4f6;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Silver Price Movement Analysis</h1>
+            <p>Daily Price Data Analysis (2015-2025) | Top 50 Gains & Losses with Statistical Sigma Values</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Trading Days</h3>
+                <div class="value">2,866</div>
+                <div class="subtext">Jan 2015 - Dec 2025</div>
+            </div>
+            <div class="stat-card">
+                <h3>Max Single-Day Gain</h3>
+                <div class="value positive">+5.63%</div>
+                <div class="subtext">Sep 8, 2016 (3.79σ)</div>
+            </div>
+            <div class="stat-card">
+                <h3>Max Single-Day Loss</h3>
+                <div class="value negative">-4.94%</div>
+                <div class="subtext">Jan 18, 2019 (-3.34σ)</div>
+            </div>
+            <div class="stat-card">
+                <h3>Daily Volatility (σ)</h3>
+                <div class="value">1.48%</div>
+                <div class="subtext">Standard Deviation</div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-container">
+                <h2>📈 Distribution of Daily Price Movements</h2>
+                <div class="chart-wrapper">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h2>📉 Top 20 Gains vs Losses Comparison</h2>
+                <div class="chart-wrapper">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="methodology">
+            <h2>📐 Understanding Sigma Values</h2>
+            <p>
+                <strong>Sigma (σ)</strong> represents the number of standard deviations a price movement is from the average.
+                It helps identify how extreme or unusual a particular day's movement was compared to typical market behavior.
+            </p>
+            <p>
+                <strong>Formula:</strong> <code>σ = (Movement% - Average%) / Standard Deviation</code>
+            </p>
+            <p>
+                <strong>Interpretation:</strong>
+                <br>• ±1σ: ~68% of movements (normal volatility)
+                <br>• ±2σ: ~95% of movements (significant move)
+                <br>• ±3σ: ~99.7% of movements (extreme/rare event)
+                <br>• Beyond ±3σ: Exceptional market event
+            </p>
+        </div>
+
+        <div class="table-container">
+            <div class="table-wrapper">
+                <h2>🚀 Top 50 Biggest Gains</h2>
+                <div style="overflow-x: auto;">
+                    <table id="gainsTable">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Date</th>
+                                <th>Close Price</th>
+                                <th>Change $</th>
+                                <th>Change %</th>
+                                <th>Sigma (σ)</th>
+                                <th>Volume</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gainsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <h2>📉 Top 50 Biggest Losses</h2>
+                <div style="overflow-x: auto;">
+                    <table id="lossesTable">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Date</th>
+                                <th>Close Price</th>
+                                <th>Change $</th>
+                                <th>Change %</th>
+                                <th>Sigma (σ)</th>
+                                <th>Volume</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lossesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>Data Source:</strong> Sample Silver Price Data (SLV ETF Proxy)</p>
+            <p>Generated: December 26, 2025 | Analysis Period: 10+ Years</p>
+            <p style="margin-top: 10px; opacity: 0.8;">
+                Note: This visualization uses sample data for demonstration.
+                For real data, use Alpha Vantage API in the Python script.
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Embedded data from analysis
+        const analysisData = {
+            "top_gains": [
+                {"Date": "2016-09-08", "Close_Price": "$11.45", "Daily_Change": "$0.61", "Daily_Change_Pct": "5.63%", "Volume": "27,558,026", "Sigma": "3.79σ"},
+                {"Date": "2022-10-13", "Close_Price": "$22.54", "Daily_Change": "$1.00", "Daily_Change_Pct": "4.64%", "Volume": "27,212,024", "Sigma": "3.13σ"},
+                {"Date": "2022-11-25", "Close_Price": "$22.04", "Daily_Change": "$0.94", "Daily_Change_Pct": "4.45%", "Volume": "13,862,565", "Sigma": "3.00σ"},
+                {"Date": "2019-04-03", "Close_Price": "$16.47", "Daily_Change": "$0.70", "Daily_Change_Pct": "4.44%", "Volume": "22,593,210", "Sigma": "2.99σ"},
+                {"Date": "2019-09-25", "Close_Price": "$15.82", "Daily_Change": "$0.67", "Daily_Change_Pct": "4.42%", "Volume": "21,069,917", "Sigma": "2.98σ"},
+                {"Date": "2019-06-21", "Close_Price": "$14.92", "Daily_Change": "$0.63", "Daily_Change_Pct": "4.41%", "Volume": "7,315,898", "Sigma": "2.97σ"},
+                {"Date": "2018-07-24", "Close_Price": "$12.42", "Daily_Change": "$0.52", "Daily_Change_Pct": "4.37%", "Volume": "27,408,984", "Sigma": "2.94σ"},
+                {"Date": "2018-06-15", "Close_Price": "$11.65", "Daily_Change": "$0.47", "Daily_Change_Pct": "4.20%", "Volume": "7,517,963", "Sigma": "2.83σ"},
+                {"Date": "2015-12-23", "Close_Price": "$12.45", "Daily_Change": "$0.49", "Daily_Change_Pct": "4.10%", "Volume": "25,510,950", "Sigma": "2.76σ"},
+                {"Date": "2021-05-18", "Close_Price": "$13.55", "Daily_Change": "$0.53", "Daily_Change_Pct": "4.07%", "Volume": "21,509,749", "Sigma": "2.74σ"},
+                {"Date": "2021-09-02", "Close_Price": "$17.68", "Daily_Change": "$0.69", "Daily_Change_Pct": "4.06%", "Volume": "8,359,950", "Sigma": "2.73σ"},
+                {"Date": "2019-02-04", "Close_Price": "$16.13", "Daily_Change": "$0.62", "Daily_Change_Pct": "4.00%", "Volume": "14,697,369", "Sigma": "2.69σ"},
+                {"Date": "2023-02-01", "Close_Price": "$20.05", "Daily_Change": "$0.77", "Daily_Change_Pct": "3.99%", "Volume": "22,009,725", "Sigma": "2.69σ"},
+                {"Date": "2019-09-26", "Close_Price": "$16.44", "Daily_Change": "$0.62", "Daily_Change_Pct": "3.92%", "Volume": "13,140,076", "Sigma": "2.64σ"},
+                {"Date": "2021-05-19", "Close_Price": "$14.08", "Daily_Change": "$0.53", "Daily_Change_Pct": "3.91%", "Volume": "9,777,261", "Sigma": "2.63σ"},
+                {"Date": "2023-12-26", "Close_Price": "$24.99", "Daily_Change": "$0.93", "Daily_Change_Pct": "3.87%", "Volume": "27,956,655", "Sigma": "2.61σ"},
+                {"Date": "2024-09-27", "Close_Price": "$21.73", "Daily_Change": "$0.79", "Daily_Change_Pct": "3.77%", "Volume": "17,278,377", "Sigma": "2.54σ"},
+                {"Date": "2020-09-24", "Close_Price": "$10.58", "Daily_Change": "$0.38", "Daily_Change_Pct": "3.73%", "Volume": "14,708,412", "Sigma": "2.51σ"},
+                {"Date": "2017-01-27", "Close_Price": "$10.37", "Daily_Change": "$0.37", "Daily_Change_Pct": "3.70%", "Volume": "13,391,903", "Sigma": "2.49σ"},
+                {"Date": "2018-10-01", "Close_Price": "$16.20", "Daily_Change": "$0.57", "Daily_Change_Pct": "3.65%", "Volume": "13,216,739", "Sigma": "2.45σ"},
+                {"Date": "2018-08-17", "Close_Price": "$13.15", "Daily_Change": "$0.46", "Daily_Change_Pct": "3.62%", "Volume": "26,553,306", "Sigma": "2.43σ"},
+                {"Date": "2016-03-11", "Close_Price": "$11.76", "Daily_Change": "$0.41", "Daily_Change_Pct": "3.61%", "Volume": "13,464,827", "Sigma": "2.43σ"},
+                {"Date": "2018-09-05", "Close_Price": "$14.66", "Daily_Change": "$0.51", "Daily_Change_Pct": "3.60%", "Volume": "14,531,079", "Sigma": "2.42σ"},
+                {"Date": "2018-08-28", "Close_Price": "$13.88", "Daily_Change": "$0.48", "Daily_Change_Pct": "3.58%", "Volume": "21,873,308", "Sigma": "2.41σ"},
+                {"Date": "2025-07-07", "Close_Price": "$24.61", "Daily_Change": "$0.85", "Daily_Change_Pct": "3.58%", "Volume": "8,258,781", "Sigma": "2.41σ"},
+                {"Date": "2019-03-27", "Close_Price": "$15.84", "Daily_Change": "$0.54", "Daily_Change_Pct": "3.53%", "Volume": "14,712,899", "Sigma": "2.37σ"},
+                {"Date": "2021-12-21", "Close_Price": "$19.40", "Daily_Change": "$0.66", "Daily_Change_Pct": "3.52%", "Volume": "10,536,387", "Sigma": "2.37σ"},
+                {"Date": "2020-03-03", "Close_Price": "$12.14", "Daily_Change": "$0.41", "Daily_Change_Pct": "3.50%", "Volume": "24,191,807", "Sigma": "2.35σ"},
+                {"Date": "2021-01-12", "Close_Price": "$11.08", "Daily_Change": "$0.37", "Daily_Change_Pct": "3.45%", "Volume": "27,092,418", "Sigma": "2.32σ"},
+                {"Date": "2020-11-10", "Close_Price": "$11.18", "Daily_Change": "$0.37", "Daily_Change_Pct": "3.42%", "Volume": "10,301,047", "Sigma": "2.30σ"},
+                {"Date": "2020-01-03", "Close_Price": "$12.75", "Daily_Change": "$0.42", "Daily_Change_Pct": "3.41%", "Volume": "15,552,355", "Sigma": "2.29σ"},
+                {"Date": "2021-09-30", "Close_Price": "$18.53", "Daily_Change": "$0.61", "Daily_Change_Pct": "3.40%", "Volume": "11,760,022", "Sigma": "2.29σ"},
+                {"Date": "2025-06-23", "Close_Price": "$23.57", "Daily_Change": "$0.77", "Daily_Change_Pct": "3.38%", "Volume": "27,003,297", "Sigma": "2.27σ"},
+                {"Date": "2019-07-03", "Close_Price": "$16.53", "Daily_Change": "$0.54", "Daily_Change_Pct": "3.38%", "Volume": "23,095,914", "Sigma": "2.27σ"},
+                {"Date": "2023-09-25", "Close_Price": "$20.30", "Daily_Change": "$0.66", "Daily_Change_Pct": "3.36%", "Volume": "18,257,800", "Sigma": "2.26σ"},
+                {"Date": "2021-12-10", "Close_Price": "$19.70", "Daily_Change": "$0.64", "Daily_Change_Pct": "3.36%", "Volume": "16,469,180", "Sigma": "2.26σ"},
+                {"Date": "2022-03-02", "Close_Price": "$21.64", "Daily_Change": "$0.69", "Daily_Change_Pct": "3.29%", "Volume": "7,920,156", "Sigma": "2.21σ"},
+                {"Date": "2015-09-07", "Close_Price": "$15.08", "Daily_Change": "$0.48", "Daily_Change_Pct": "3.29%", "Volume": "8,097,022", "Sigma": "2.21σ"},
+                {"Date": "2023-07-06", "Close_Price": "$18.58", "Daily_Change": "$0.59", "Daily_Change_Pct": "3.28%", "Volume": "25,656,399", "Sigma": "2.21σ"},
+                {"Date": "2024-01-01", "Close_Price": "$26.87", "Daily_Change": "$0.85", "Daily_Change_Pct": "3.27%", "Volume": "9,905,626", "Sigma": "2.20σ"},
+                {"Date": "2020-11-16", "Close_Price": "$11.20", "Daily_Change": "$0.35", "Daily_Change_Pct": "3.23%", "Volume": "26,810,286", "Sigma": "2.17σ"},
+                {"Date": "2023-03-17", "Close_Price": "$20.97", "Daily_Change": "$0.65", "Daily_Change_Pct": "3.20%", "Volume": "12,233,983", "Sigma": "2.15σ"},
+                {"Date": "2018-09-20", "Close_Price": "$16.47", "Daily_Change": "$0.51", "Daily_Change_Pct": "3.20%", "Volume": "24,353,231", "Sigma": "2.15σ"},
+                {"Date": "2022-09-29", "Close_Price": "$21.64", "Daily_Change": "$0.67", "Daily_Change_Pct": "3.20%", "Volume": "18,535,577", "Sigma": "2.15σ"},
+                {"Date": "2017-02-09", "Close_Price": "$10.99", "Daily_Change": "$0.34", "Daily_Change_Pct": "3.19%", "Volume": "21,667,401", "Sigma": "2.14σ"},
+                {"Date": "2017-08-29", "Close_Price": "$12.00", "Daily_Change": "$0.37", "Daily_Change_Pct": "3.18%", "Volume": "7,850,685", "Sigma": "2.14σ"},
+                {"Date": "2015-08-05", "Close_Price": "$15.27", "Daily_Change": "$0.47", "Daily_Change_Pct": "3.18%", "Volume": "5,312,574", "Sigma": "2.14σ"},
+                {"Date": "2017-03-07", "Close_Price": "$11.10", "Daily_Change": "$0.34", "Daily_Change_Pct": "3.16%", "Volume": "14,903,303", "Sigma": "2.13σ"},
+                {"Date": "2023-10-17", "Close_Price": "$20.57", "Daily_Change": "$0.63", "Daily_Change_Pct": "3.16%", "Volume": "9,780,000", "Sigma": "2.13σ"},
+                {"Date": "2017-10-10", "Close_Price": "$11.45", "Daily_Change": "$0.35", "Daily_Change_Pct": "3.15%", "Volume": "28,139,473", "Sigma": "2.12σ"}
+            ],
+            "top_losses": [
+                {"Date": "2019-01-18", "Close_Price": "$15.97", "Daily_Change": "$-0.83", "Daily_Change_Pct": "-4.94%", "Volume": "21,051,466", "Sigma": "-3.34σ"},
+                {"Date": "2025-07-29", "Close_Price": "$21.32", "Daily_Change": "$-1.09", "Daily_Change_Pct": "-4.86%", "Volume": "17,472,837", "Sigma": "-3.28σ"},
+                {"Date": "2025-08-14", "Close_Price": "$17.89", "Daily_Change": "$-0.89", "Daily_Change_Pct": "-4.74%", "Volume": "15,128,125", "Sigma": "-3.20σ"},
+                {"Date": "2020-11-12", "Close_Price": "$10.71", "Daily_Change": "$-0.51", "Daily_Change_Pct": "-4.55%", "Volume": "19,354,562", "Sigma": "-3.07σ"},
+                {"Date": "2024-03-06", "Close_Price": "$27.19", "Daily_Change": "$-1.27", "Daily_Change_Pct": "-4.46%", "Volume": "21,162,109", "Sigma": "-3.01σ"},
+                {"Date": "2017-12-11", "Close_Price": "$11.38", "Daily_Change": "$-0.53", "Daily_Change_Pct": "-4.45%", "Volume": "22,540,513", "Sigma": "-3.00σ"},
+                {"Date": "2024-09-04", "Close_Price": "$21.95", "Daily_Change": "$-0.99", "Daily_Change_Pct": "-4.32%", "Volume": "22,150,798", "Sigma": "-2.91σ"},
+                {"Date": "2025-08-13", "Close_Price": "$18.78", "Daily_Change": "$-0.83", "Daily_Change_Pct": "-4.23%", "Volume": "5,547,019", "Sigma": "-2.85σ"},
+                {"Date": "2025-03-25", "Close_Price": "$21.35", "Daily_Change": "$-0.94", "Daily_Change_Pct": "-4.22%", "Volume": "20,865,392", "Sigma": "-2.85σ"},
+                {"Date": "2022-07-11", "Close_Price": "$19.37", "Daily_Change": "$-0.85", "Daily_Change_Pct": "-4.20%", "Volume": "11,372,495", "Sigma": "-2.83σ"},
+                {"Date": "2019-07-12", "Close_Price": "$15.83", "Daily_Change": "$-0.69", "Daily_Change_Pct": "-4.18%", "Volume": "27,598,905", "Sigma": "-2.82σ"},
+                {"Date": "2019-12-10", "Close_Price": "$12.93", "Daily_Change": "$-0.56", "Daily_Change_Pct": "-4.15%", "Volume": "12,578,511", "Sigma": "-2.80σ"},
+                {"Date": "2020-12-09", "Close_Price": "$10.99", "Daily_Change": "$-0.47", "Daily_Change_Pct": "-4.10%", "Volume": "28,287,816", "Sigma": "-2.76σ"},
+                {"Date": "2015-03-24", "Close_Price": "$17.22", "Daily_Change": "$-0.71", "Daily_Change_Pct": "-3.96%", "Volume": "5,385,239", "Sigma": "-2.67σ"},
+                {"Date": "2015-01-29", "Close_Price": "$19.42", "Daily_Change": "$-0.79", "Daily_Change_Pct": "-3.91%", "Volume": "17,701,506", "Sigma": "-2.63σ"},
+                {"Date": "2016-12-13", "Close_Price": "$10.64", "Daily_Change": "$-0.43", "Daily_Change_Pct": "-3.88%", "Volume": "16,360,229", "Sigma": "-2.61σ"},
+                {"Date": "2023-06-21", "Close_Price": "$17.40", "Daily_Change": "$-0.69", "Daily_Change_Pct": "-3.81%", "Volume": "20,059,729", "Sigma": "-2.57σ"},
+                {"Date": "2021-07-13", "Close_Price": "$15.27", "Daily_Change": "$-0.60", "Daily_Change_Pct": "-3.78%", "Volume": "11,648,241", "Sigma": "-2.55σ"},
+                {"Date": "2025-01-02", "Close_Price": "$22.45", "Daily_Change": "$-0.87", "Daily_Change_Pct": "-3.73%", "Volume": "28,408,339", "Sigma": "-2.51σ"},
+                {"Date": "2015-11-03", "Close_Price": "$14.21", "Daily_Change": "$-0.55", "Daily_Change_Pct": "-3.73%", "Volume": "6,283,698", "Sigma": "-2.51σ"},
+                {"Date": "2022-11-18", "Close_Price": "$21.13", "Daily_Change": "$-0.80", "Daily_Change_Pct": "-3.65%", "Volume": "22,169,982", "Sigma": "-2.46σ"},
+                {"Date": "2019-09-03", "Close_Price": "$16.25", "Daily_Change": "$-0.61", "Daily_Change_Pct": "-3.62%", "Volume": "23,699,440", "Sigma": "-2.44σ"},
+                {"Date": "2021-09-09", "Close_Price": "$16.81", "Daily_Change": "$-0.63", "Daily_Change_Pct": "-3.61%", "Volume": "18,033,297", "Sigma": "-2.43σ"},
+                {"Date": "2019-04-04", "Close_Price": "$15.88", "Daily_Change": "$-0.59", "Daily_Change_Pct": "-3.58%", "Volume": "21,918,569", "Sigma": "-2.41σ"},
+                {"Date": "2024-07-17", "Close_Price": "$25.45", "Daily_Change": "$-0.94", "Daily_Change_Pct": "-3.56%", "Volume": "24,290,237", "Sigma": "-2.40σ"},
+                {"Date": "2022-03-16", "Close_Price": "$19.52", "Daily_Change": "$-0.72", "Daily_Change_Pct": "-3.56%", "Volume": "23,880,533", "Sigma": "-2.40σ"},
+                {"Date": "2025-08-21", "Close_Price": "$17.37", "Daily_Change": "$-0.64", "Daily_Change_Pct": "-3.55%", "Volume": "23,577,852", "Sigma": "-2.39σ"},
+                {"Date": "2019-04-24", "Close_Price": "$15.90", "Daily_Change": "$-0.58", "Daily_Change_Pct": "-3.52%", "Volume": "5,229,180", "Sigma": "-2.37σ"},
+                {"Date": "2025-12-08", "Close_Price": "$15.92", "Daily_Change": "$-0.58", "Daily_Change_Pct": "-3.52%", "Volume": "7,234,651", "Sigma": "-2.37σ"},
+                {"Date": "2018-05-08", "Close_Price": "$10.46", "Daily_Change": "$-0.38", "Daily_Change_Pct": "-3.51%", "Volume": "14,846,298", "Sigma": "-2.36σ"},
+                {"Date": "2024-06-05", "Close_Price": "$24.92", "Daily_Change": "$-0.89", "Daily_Change_Pct": "-3.45%", "Volume": "25,601,266", "Sigma": "-2.32σ"},
+                {"Date": "2019-10-23", "Close_Price": "$14.41", "Daily_Change": "$-0.51", "Daily_Change_Pct": "-3.42%", "Volume": "16,326,777", "Sigma": "-2.30σ"},
+                {"Date": "2020-09-25", "Close_Price": "$10.22", "Daily_Change": "$-0.36", "Daily_Change_Pct": "-3.40%", "Volume": "22,260,902", "Sigma": "-2.29σ"},
+                {"Date": "2015-10-05", "Close_Price": "$13.42", "Daily_Change": "$-0.47", "Daily_Change_Pct": "-3.38%", "Volume": "10,452,654", "Sigma": "-2.27σ"},
+                {"Date": "2025-08-07", "Close_Price": "$19.51", "Daily_Change": "$-0.68", "Daily_Change_Pct": "-3.37%", "Volume": "17,079,882", "Sigma": "-2.27σ"},
+                {"Date": "2017-08-07", "Close_Price": "$11.80", "Daily_Change": "$-0.41", "Daily_Change_Pct": "-3.36%", "Volume": "25,588,102", "Sigma": "-2.26σ"},
+                {"Date": "2015-08-19", "Close_Price": "$14.40", "Daily_Change": "$-0.50", "Daily_Change_Pct": "-3.36%", "Volume": "26,943,803", "Sigma": "-2.26σ"},
+                {"Date": "2022-03-07", "Close_Price": "$20.88", "Daily_Change": "$-0.72", "Daily_Change_Pct": "-3.33%", "Volume": "5,414,860", "Sigma": "-2.24σ"},
+                {"Date": "2020-04-30", "Close_Price": "$11.06", "Daily_Change": "$-0.38", "Daily_Change_Pct": "-3.32%", "Volume": "28,209,898", "Sigma": "-2.24σ"},
+                {"Date": "2017-03-03", "Close_Price": "$10.83", "Daily_Change": "$-0.37", "Daily_Change_Pct": "-3.30%", "Volume": "10,521,194", "Sigma": "-2.22σ"},
+                {"Date": "2015-11-19", "Close_Price": "$12.72", "Daily_Change": "$-0.43", "Daily_Change_Pct": "-3.27%", "Volume": "16,079,674", "Sigma": "-2.20σ"},
+                {"Date": "2018-06-13", "Close_Price": "$11.26", "Daily_Change": "$-0.38", "Daily_Change_Pct": "-3.26%", "Volume": "19,594,181", "Sigma": "-2.19σ"},
+                {"Date": "2020-07-31", "Close_Price": "$10.72", "Daily_Change": "$-0.36", "Daily_Change_Pct": "-3.25%", "Volume": "10,812,795", "Sigma": "-2.19σ"},
+                {"Date": "2023-02-23", "Close_Price": "$20.85", "Daily_Change": "$-0.70", "Daily_Change_Pct": "-3.25%", "Volume": "6,821,173", "Sigma": "-2.19σ"},
+                {"Date": "2019-06-07", "Close_Price": "$14.03", "Daily_Change": "$-0.47", "Daily_Change_Pct": "-3.24%", "Volume": "19,947,918", "Sigma": "-2.18σ"},
+                {"Date": "2019-11-28", "Close_Price": "$13.47", "Daily_Change": "$-0.45", "Daily_Change_Pct": "-3.23%", "Volume": "11,015,197", "Sigma": "-2.18σ"},
+                {"Date": "2018-05-24", "Close_Price": "$11.09", "Daily_Change": "$-0.37", "Daily_Change_Pct": "-3.23%", "Volume": "16,376,181", "Sigma": "-2.18σ"},
+                {"Date": "2025-01-10", "Close_Price": "$22.63", "Daily_Change": "$-0.75", "Daily_Change_Pct": "-3.21%", "Volume": "21,161,548", "Sigma": "-2.16σ"},
+                {"Date": "2017-06-06", "Close_Price": "$10.89", "Daily_Change": "$-0.36", "Daily_Change_Pct": "-3.20%", "Volume": "22,496,999", "Sigma": "-2.15σ"},
+                {"Date": "2019-05-08", "Close_Price": "$15.46", "Daily_Change": "$-0.51", "Daily_Change_Pct": "-3.19%", "Volume": "28,607,456", "Sigma": "-2.15σ"}
+            ]
+        };
+
+        // Populate tables
+        function populateTables() {
+            const gainsBody = document.getElementById('gainsTableBody');
+            const lossesBody = document.getElementById('lossesTableBody');
+
+            analysisData.top_gains.forEach((item, index) => {
+                const sigma = parseFloat(item.Sigma);
+                const sigmaClass = sigma > 3 ? 'sigma-extreme' : sigma > 2 ? 'sigma-high' : '';
+
+                const row = `
+                    <tr>
+                        <td class="rank">${index + 1}</td>
+                        <td>${item.Date}</td>
+                        <td>${item.Close_Price}</td>
+                        <td class="positive">${item.Daily_Change}</td>
+                        <td class="positive"><strong>${item.Daily_Change_Pct}</strong></td>
+                        <td><span class="sigma-badge ${sigmaClass}">${item.Sigma}</span></td>
+                        <td>${item.Volume}</td>
+                    </tr>
+                `;
+                gainsBody.innerHTML += row;
+            });
+
+            analysisData.top_losses.forEach((item, index) => {
+                const sigma = Math.abs(parseFloat(item.Sigma));
+                const sigmaClass = sigma > 3 ? 'sigma-extreme' : sigma > 2 ? 'sigma-high' : '';
+
+                const row = `
+                    <tr>
+                        <td class="rank">${index + 1}</td>
+                        <td>${item.Date}</td>
+                        <td>${item.Close_Price}</td>
+                        <td class="negative">${item.Daily_Change}</td>
+                        <td class="negative"><strong>${item.Daily_Change_Pct}</strong></td>
+                        <td><span class="sigma-badge ${sigmaClass}">${item.Sigma}</span></td>
+                        <td>${item.Volume}</td>
+                    </tr>
+                `;
+                lossesBody.innerHTML += row;
+            });
+        }
+
+        // Create distribution chart
+        function createDistributionChart() {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+
+            // Generate distribution data
+            const labels = [];
+            const data = [];
+            for (let i = -5; i <= 5; i += 0.5) {
+                labels.push(i.toFixed(1) + '%');
+                // Simulate normal distribution
+                const count = Math.round(200 * Math.exp(-Math.pow(i / 1.5, 2)));
+                data.push(count);
+            }
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Frequency',
+                        data: data,
+                        backgroundColor: labels.map((l, i) => {
+                            const val = parseFloat(l);
+                            if (val > 3) return 'rgba(16, 185, 129, 0.8)';
+                            if (val < -3) return 'rgba(239, 68, 68, 0.8)';
+                            if (val > 2) return 'rgba(16, 185, 129, 0.5)';
+                            if (val < -2) return 'rgba(239, 68, 68, 0.5)';
+                            return 'rgba(102, 126, 234, 0.6)';
+                        }),
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Normal Distribution of Daily Price Movements (Bell Curve)',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Days'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Daily Price Change (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create comparison chart
+        function createComparisonChart() {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+
+            const topGains = analysisData.top_gains.slice(0, 20).reverse();
+            const topLosses = analysisData.top_losses.slice(0, 20).reverse();
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [...topLosses.map((item, i) => `#${20-i}`), ...topGains.map((item, i) => `#${i+1}`)],
+                    datasets: [{
+                        label: 'Price Change %',
+                        data: [
+                            ...topLosses.map(item => parseFloat(item.Daily_Change_Pct)),
+                            ...topGains.map(item => parseFloat(item.Daily_Change_Pct))
+                        ],
+                        backgroundColor: function(context) {
+                            const value = context.parsed.y;
+                            return value > 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)';
+                        },
+                        borderColor: function(context) {
+                            const value = context.parsed.y;
+                            return value > 0 ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)';
+                        },
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.x.toFixed(2) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Price Change (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            populateTables();
+            createDistributionChart();
+            createComparisonChart();
+        });
+    </script>
+</body>
+</html>

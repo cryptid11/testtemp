@@ -2,17 +2,39 @@
 
 This project retrieves daily silver price data and ranks the biggest movements (positive and negative) over the last 10 years.
 
+## 🎯 Interactive Dashboard
+
+**View the interactive visualization:** Open `index.html` in your browser!
+
+The dashboard includes:
+- 📊 **Distribution Chart** - Bell curve showing normal distribution of daily movements
+- 📈 **Comparison Chart** - Visual comparison of top 20 gains vs losses
+- 📉 **Sigma Values** - Statistical significance (standard deviations) for each movement
+- 📋 **Interactive Tables** - All top 50 gains and losses with detailed metrics
+
+### What are Sigma Values?
+
+Sigma (σ) represents how many standard deviations a price movement is from the average:
+- **±1σ**: Normal volatility (~68% of movements)
+- **±2σ**: Significant move (~95% of movements)
+- **±3σ**: Extreme/rare event (~99.7% of movements)
+- **Beyond ±3σ**: Exceptional market event
+
+For example, the biggest gain (+5.63% on 2016-09-08) was **3.79σ** - an extremely rare event!
+
 ## Overview
 
 The analysis script fetches historical silver price data (using SLV - iShares Silver Trust ETF as a proxy) and identifies:
-- Top 50 biggest single-day gains
-- Top 50 biggest single-day losses
+- Top 50 biggest single-day gains with sigma values
+- Top 50 biggest single-day losses with sigma values
 - Summary statistics including max gain/loss, average daily change, and volatility
+- Distribution analysis of all daily movements
 
 ## Files Generated
 
 After running the analysis, the following files are created:
 
+- **index.html** - 🌟 Interactive dashboard with charts and sigma analysis
 - **silver_analysis_report.txt** - Human-readable report with formatted tables
 - **silver_price_analysis.json** - Structured JSON data for programmatic access
 - **silver_price_data_full.csv** - Complete dataset with all daily prices and movements
